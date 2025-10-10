@@ -3070,19 +3070,12 @@ Add ServiceAccount-specific labels to pods
 Pass in dict with .root and .serviceAccount (e.g., "default", "agent", "thoragent", "esp-service", "dali")
 */}}
 {{- define "hpcc.addServiceAccountLabels" -}}
-{{- if and .root .root.Values -}}
- {{- if hasKey .root.Values "global" -}}
-  {{- if hasKey .root.Values.global "serviceAccounts" -}}
-   {{- if hasKey .root.Values.global.serviceAccounts .serviceAccount -}}
-    {{- $saConfig := index .root.Values.global.serviceAccounts .serviceAccount -}}
-    {{- if hasKey $saConfig "podLabels" -}}
-     {{- range $key, $value := $saConfig.podLabels }}
-{{ $key }}: {{ $value | quote }}
-     {{- end -}}
-    {{- end -}}
-   {{- end -}}
-  {{- end -}}
- {{- end -}}
+{{- $global := (.root.Values.global | default dict) -}}
+{{- $serviceAccounts := ($global.serviceAccounts | default dict) -}}
+{{- $serviceAccount := get $serviceAccounts .serviceAccount -}}
+{{- if and $serviceAccount (hasKey $serviceAccount "podLabels") -}}
+labels:
+{{ toYaml $serviceAccount.podLabels | indent 2 }}
 {{- end -}}
 {{- end -}}
 
@@ -3091,13 +3084,11 @@ Add ServiceAccount annotations
 Pass in dict with .root and .serviceAccount (e.g., "default", "agent", "thoragent", "esp-service", "dali")
 */}}
 {{- define "hpcc.addServiceAccountAnnotations" -}}
-{{- if hasKey .root.Values.global "serviceAccounts" -}}
- {{- if hasKey .root.Values.global.serviceAccounts .serviceAccount -}}
-  {{- $saConfig := index .root.Values.global.serviceAccounts .serviceAccount -}}
-  {{- if hasKey $saConfig "annotations" }}
-  annotations:
-{{ toYaml $saConfig.annotations | indent 4 }}
-  {{- end -}}
- {{- end -}}
+{{- $global := (.root.Values.global | default dict) -}}
+{{- $serviceAccounts := ($global.serviceAccounts | default dict) -}}
+{{- $serviceAccount := get $serviceAccounts .serviceAccount -}}
+{{- if and $serviceAccount (hasKey $serviceAccount "annotations") -}}
+annotations:
+{{ toYaml $serviceAccount.annotations | indent 2 }}
 {{- end -}}
 {{- end -}}
